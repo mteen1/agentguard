@@ -1,0 +1,44 @@
+version: 1
+name: fast-prototype
+description: Permissive policy for short-lived prototypes with basic safety rails.
+commands:
+  default: allow
+  allow:
+    - '*'
+  deny:
+    - rm -rf /*
+    - sudo*
+    - git reset --hard*
+    - git clean -fd*
+    - chmod -R 777*
+  require_approval:
+    - docker system prune*
+    - docker compose down --volumes*
+files:
+  protected:
+    - .env*
+    - secrets/**
+    - credentials/**
+  allow_write:
+    - '**'
+  deny_write:
+    - .git/**
+dependencies:
+  lockfile_required: false
+  manifests:
+    - package.json
+    - pyproject.toml
+risk:
+  max_changed_files: 80
+  max_diff_lines: 2500
+  secret_patterns: []
+reporting:
+  output_dir: .agentguard/sessions
+  formats:
+    - json
+    - markdown
+    - html
+rollback:
+  enabled: true
+  require_clean_git: false
+agents: {}

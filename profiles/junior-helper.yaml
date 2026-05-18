@@ -1,0 +1,65 @@
+version: 1
+name: junior-helper
+description: Guided policy for agents that should make narrow, reviewable edits.
+commands:
+  default: require_approval
+  allow:
+    - git status
+    - git diff*
+    - git log*
+    - python --version
+    - python -m unittest*
+    - npm test*
+    - npm run test*
+  deny:
+    - rm -rf*
+    - rm -fr*
+    - sudo*
+    - git reset --hard*
+    - git clean -fd*
+    - chmod -R*
+    - chown -R*
+  require_approval:
+    - pip install*
+    - uv add*
+    - npm install*
+    - npm add*
+    - yarn*
+    - pnpm*
+    - docker*
+files:
+  protected:
+    - .env*
+    - secrets/**
+    - credentials/**
+    - migrations/**
+  allow_write:
+    - src/**
+    - tests/**
+    - docs/**
+    - README.md
+  deny_write:
+    - .git/**
+    - .github/workflows/**
+dependencies:
+  lockfile_required: true
+  manifests:
+    - package.json
+    - pyproject.toml
+    - requirements.txt
+risk:
+  max_changed_files: 12
+  max_diff_lines: 500
+  secret_patterns: []
+reporting:
+  output_dir: .agentguard/sessions
+  formats:
+    - json
+    - markdown
+    - html
+rollback:
+  enabled: true
+  require_clean_git: true
+agents:
+  codex:
+    instructions: Prefer small edits, run focused tests, and summarize every policy finding.
