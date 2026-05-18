@@ -1,0 +1,73 @@
+version: 1
+name: production-strict
+description: Strict policy for production repositories and sensitive worktrees.
+commands:
+  default: require_approval
+  allow:
+    - git status
+    - git diff*
+    - git log*
+    - git show*
+    - python --version
+    - python -m unittest*
+  deny:
+    - rm -rf*
+    - rm -fr*
+    - sudo*
+    - chmod -R 777*
+    - chown -R*
+    - git reset --hard*
+    - git clean -fd*
+    - docker system prune*
+  require_approval:
+    - pip install*
+    - uv add*
+    - uv sync*
+    - npm install*
+    - yarn add*
+    - pnpm add*
+    - cargo add*
+    - go get*
+    - docker compose up*
+files:
+  protected:
+    - .env*
+    - secrets/**
+    - credentials/**
+    - '*.pem'
+    - '*.key'
+    - id_rsa*
+    - id_ed25519*
+  allow_write:
+    - '**'
+  deny_write:
+    - .git/**
+dependencies:
+  lockfile_required: true
+  manifests:
+    - package.json
+    - pyproject.toml
+    - requirements.txt
+    - Cargo.toml
+    - go.mod
+risk:
+  max_changed_files: 20
+  max_diff_lines: 800
+  secret_patterns:
+    - '(?i)openai[_-]?api[_-]?key\s*[:=]\s*["''][^"'']{12,}["'']'
+reporting:
+  output_dir: .agentguard/sessions
+  formats:
+    - json
+    - markdown
+    - html
+rollback:
+  enabled: true
+  require_clean_git: true
+agents:
+  codex:
+    instructions: Use AgentGuard command decisions before running tools that alter files or dependencies.
+  claude:
+    instructions: Ask for approval before executing any command classified as require_approval.
+  cursor:
+    instructions: Keep generated edits scoped to files allowed by the active AgentGuard policy.
